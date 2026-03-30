@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chapter Operations Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="brand">
+          <span class="logo">RJ</span>
+          <span>RJ Edwards</span>
+        </div>
+        <span class="chip">Standalone demo</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="page-head">
+          <h1>Chapter Operations Dashboard</h1>
+          <p class="lede">
+            Membership, dues, events, and tasks in one place — demo data stays in your browser (localStorage).
+          </p>
+        </div>
+
+        <div class="kpi-grid" aria-label="Key metrics">
+          <div class="kpi-card">
+            <div class="kpi-label">Members</div>
+            <div class="kpi-value" id="kpi-members">0</div>
+            <div class="kpi-sub">Active roster</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total dues</div>
+            <div class="kpi-value" id="kpi-dues">$0</div>
+            <div class="kpi-sub">Assessed this term</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Collected</div>
+            <div class="kpi-value" id="kpi-collected">$0</div>
+            <div class="kpi-sub" id="kpi-pct-sub">0% of total</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Outstanding</div>
+            <div class="kpi-value" id="kpi-outstanding">$0</div>
+            <div class="kpi-sub">Still owed</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Upcoming events</div>
+            <div class="kpi-value" id="kpi-events">0</div>
+            <div class="kpi-sub">On or after today</div>
+          </div>
+        </div>
+
+        <div id="alerts-panel" class="alerts-panel hidden">
+          <h3>Reminders</h3>
+          <div class="alerts-list" id="alerts-list"></div>
+        </div>
+
+        <div class="layout-main">
+          <div class="stack-gap">
+            <section class="panel">
+              <div class="section-title">
+                <strong>Members &amp; finance</strong>
+                <div class="row right">
+                  <input id="search" type="search" placeholder="Search (press /)" autocomplete="off" />
+                  <button type="button" class="button secondary sm" id="btn-add-member">Add member</button>
+                  <button type="button" class="button secondary sm" id="btn-export-csv">Export CSV</button>
+                </div>
+              </div>
+
+              <div class="totals">
+                <span class="pill" id="pill-collected"></span>
+                <span class="pill" id="pill-counts"></span>
+                <div class="bar-wrap">
+                  <div class="bar" id="dues-bar"></div>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="members-table" aria-label="Members table">
+                  <thead>
+                    <tr>
+                      <th aria-hidden="true"></th>
+                      <th>
+                        <button type="button" class="button secondary sm" id="btn-sort-name" title="Sort by name">Name</button>
+                      </th>
+                      <th>Role</th>
+                      <th>Dues</th>
+                      <th>Paid</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="members-tbody"></tbody>
+                </table>
+              </div>
+              <div class="member-drop-zone" id="member-drop-end" aria-hidden="true"></div>
+            </section>
+
+            <div class="analytics-grid" aria-label="Insights">
+              <div class="analytics-card">
+                <h4>Payment progress</h4>
+                <div class="big" id="analytics-pay-pct">0%</div>
+                <div class="mini-bar"><span id="analytics-mini-bar"></span></div>
+                <p class="hint" id="analytics-pay-hint"></p>
+              </div>
+              <div class="analytics-card">
+                <h4>RSVP strength</h4>
+                <div class="big" id="analytics-rsvp">0%</div>
+                <p class="hint">Average &quot;yes&quot; rate across events (vs roster size)</p>
+              </div>
+              <div class="analytics-card">
+                <h4>Engagement</h4>
+                <div class="big" id="analytics-engage">0%</div>
+                <p class="hint">Members with at least one &quot;yes&quot; RSVP</p>
+              </div>
+            </div>
+
+            <section class="panel panel-tight">
+              <div class="section-title">
+                <strong>Tasks</strong>
+                <div class="row right">
+                  <input id="task-title" placeholder="New task" />
+                  <select id="task-assignee"></select>
+                  <select id="task-priority">
+                    <option value="low">Low</option>
+                    <option value="med" selected>Med</option>
+                    <option value="high">High</option>
+                  </select>
+                  <input type="date" id="task-due" title="Due date" />
+                  <button type="button" class="button secondary sm" id="btn-add-task">Add</button>
+                  <button type="button" class="button secondary sm" id="btn-clear-done">Clear done</button>
+                </div>
+              </div>
+
+              <div class="kanban">
+                <div class="col" data-kanban-col="todo">
+                  <strong>To do</strong>
+                  <div id="kanban-todo"></div>
+                </div>
+                <div class="col" data-kanban-col="doing">
+                  <strong>Doing</strong>
+                  <div id="kanban-doing"></div>
+                </div>
+                <div class="col" data-kanban-col="done">
+                  <strong>Done</strong>
+                  <div id="kanban-done"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="stack-gap">
+            <section class="panel">
+              <div class="section-title">
+                <strong>Events</strong>
+                <div class="row right">
+                  <input id="event-title" placeholder="Title" />
+                  <input type="date" id="event-date" />
+                  <button type="button" class="button secondary sm" id="btn-add-event">Create</button>
+                </div>
+              </div>
+              <div class="events-list" id="events-list"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer><span id="footer-year"></span> RJ Edwards. All rights reserved.</footer>
+
+    <div id="drawer-backdrop" class="drawer-backdrop hidden" role="presentation"></div>
+    <aside id="member-drawer" class="drawer hidden" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <div class="drawer-head">
+        <div>
+          <h2 id="drawer-title"></h2>
+          <span class="chip" id="drawer-role"></span>
+        </div>
+        <button type="button" class="button secondary sm" id="drawer-close">Close</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-section">
+          <h3>Dues</h3>
+          <p class="dues-line" id="drawer-dues-line"></p>
+          <span id="drawer-status"></span>
+        </div>
+        <div class="drawer-section">
+          <h3>Record payment</h3>
+          <div class="pay-form">
+            <label class="small">
+              Amount ($)
+              <input type="number" id="pay-amount" min="1" step="1" placeholder="e.g. 50" />
+            </label>
+            <label class="small">
+              Note (optional)
+              <input type="text" id="pay-note" placeholder="e.g. Cash, check #1024" />
+            </label>
+            <button type="button" class="button sm" id="pay-apply">Apply</button>
+          </div>
+        </div>
+        <div class="drawer-section">
+          <h3>Payment history</h3>
+          <ul class="history-list" id="drawer-history"></ul>
+          <p class="empty hidden" id="drawer-history-empty">No payments yet.</p>
+        </div>
+        <div class="drawer-section">
+          <h3>Attendance (from RSVPs)</h3>
+          <ul class="history-list attendance-list" id="drawer-attendance"></ul>
+        </div>
+        <div class="drawer-section">
+          <h3>Notes</h3>
+          <textarea class="notes-area" id="drawer-notes" placeholder="Internal notes…"></textarea>
+        </div>
+      </div>
+    </aside>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
